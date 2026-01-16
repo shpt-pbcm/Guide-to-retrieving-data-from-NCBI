@@ -12,6 +12,7 @@ This repository provides a step-by-step guide to retrieve raw sequencing data (S
 ```bash
 sudo apt-get update
 sudo apt-get install -y edirect```
+
 1.2 Export runinfo.csv from SRA
 bash
 Sao chép mã

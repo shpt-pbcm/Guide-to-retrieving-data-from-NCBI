@@ -74,7 +74,7 @@ find sra_download -name "*.sra" | head
 ```
 #### 3.2 Convert .sra to FASTQ
 ```bash
-fasterq-dump --split-files --threads 8 --outdir fastq $([file.txt])
+fasterq-dump --split-files --threads [number]--outdir fastq $([file.txt])
 ```
 
 Example
@@ -123,18 +123,52 @@ NR==1{
   next
 }
 NR>1 && $col!="" {print $col}
+' [file.tsv/csv] > [file.txt]
+```
+
+Example:
+```bash
+awk -F',' '
+NR==1{
+  for(i=1;i<=NF;i++) if($i=="Run") col=i
+  if(!col){print "Run column not found"; exit}
+  next
+}
+NR>1 && $col!="" {print $col}
 ' runinfo.csv > runs.txt
 ```
+
 #### 1.3 Fix Windows CRLF line endings
+```bash
+sed -i 's/\r$//' [file.tsv/csv]
+```
+
+Example:
 ```bash
 sed -i 's/\r$//' runinfo.csv
 ```
+
 #### 1.4 Force BioProject-specific query
+```bash
+esearch -db sra -query "[BioProject_number][BioProject]" | efetch -format runinfo > [file.tsv/csv]
+```
+
+Example:
 ```bash
 esearch -db sra -query "PRJNA719415[BioProject]" | efetch -format runinfo > runinfo.csv
 ```
 
 #### 1.5 Retrieve SRR accessions without runinfo
+```bash
+esearch -db sra -query "[BioProject_number][BioProject]" \
+| esummary \
+| xtract -pattern DocumentSummary -element Runs \
+| tr ',' '\n' \
+| sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
+| grep '^SRR' > [file.txt]
+```
+
+Example:
 ```bash
 esearch -db sra -query "PRJNA719415[BioProject]" \
 | esummary \
@@ -147,6 +181,10 @@ esearch -db sra -query "PRJNA719415[BioProject]" \
 ### 2. Check whether a BioProject contains raw SRA data
 #### 2.1 Check SRA availability
 ```bash
+esearch -db sra -query "[BioProject_number][BioProject]" | wc -l
+```
+Example:
+```bash
 esearch -db sra -query "PRJNA719415[BioProject]" | wc -l
 ```
 
@@ -155,10 +193,21 @@ esearch -db sra -query "PRJNA719415[BioProject]" | wc -l
 
 #### 2.2 Check BioProject–SRA linkage
 ```bash
+esearch -db bioproject -query [BioProject_number]| elink -target sra | wc -l
+```
+
+Example:
+```bash
 esearch -db bioproject -query PRJNA719415 | elink -target sra | wc -l
 ```
 
 #### 2.3 Check for genome assemblies
+```bash
+esearch -db assembly -query [BioProject_number] \
+| esummary \
+| xtract -pattern DocumentSummary -element AssemblyAccession
+```
+Example:
 ```bash
 esearch -db assembly -query PRJNA719415 \
 | esummary \

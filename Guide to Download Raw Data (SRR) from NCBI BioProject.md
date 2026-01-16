@@ -126,39 +126,43 @@ NR>1 && $col!="" {print $col}
 ' runinfo.csv > runs.txt
 ```
 #### 1.3 Fix Windows CRLF line endings
-bash
-
+```bash
 sed -i 's/\r$//' runinfo.csv
+```
 #### 1.4 Force BioProject-specific query
-bash
-
+```bash
 esearch -db sra -query "PRJNA719415[BioProject]" | efetch -format runinfo > runinfo.csv
-####1.5 Retrieve SRR accessions without runinfo
-bash
+```
 
+#### 1.5 Retrieve SRR accessions without runinfo
+```bash
 esearch -db sra -query "PRJNA719415[BioProject]" \
 | esummary \
 | xtract -pattern DocumentSummary -element Runs \
 | tr ',' '\n' \
 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
 | grep '^SRR' > runs.txt
+```
+
 ### 2. Check whether a BioProject contains raw SRA data
 #### 2.1 Check SRA availability
-bash
-
+```bash
 esearch -db sra -query "PRJNA719415[BioProject]" | wc -l
-0 → No SRA data
+```
 
+0 → No SRA data
 >0 → SRA data available
 
 #### 2.2 Check BioProject–SRA linkage
-bash
-
+```bash
 esearch -db bioproject -query PRJNA719415 | elink -target sra | wc -l
-#### 2.3 Check for genome assemblies
-bash
+```
 
+#### 2.3 Check for genome assemblies
+```bash
 esearch -db assembly -query PRJNA719415 \
 | esummary \
 | xtract -pattern DocumentSummary -element AssemblyAccession
+```
+
 If output contains GCA_XXXXXXXX.X → Assembly data exists.

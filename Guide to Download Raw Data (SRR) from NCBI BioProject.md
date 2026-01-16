@@ -16,7 +16,7 @@ sudo apt-get install -y edirect
 
 #### 1.2 Export runinfo.csv from SRA
 ```bash
-esearch -db sra -query [BioProject_number] | efetch -format runinfo > runinfo.csv
+esearch -db sra -query [BioProject_number] | efetch -format runinfo > [file.tsv/csv]
 ```
 
 Example
@@ -27,8 +27,8 @@ esearch -db sra -query PRJNA719415 | efetch -format runinfo > runinfo_PRJNA71941
 #### 1.3 Extract SRR accessions
 ```bash
 cut -d',' -f1 [file.tsv/csv]| tail -n +2 > [file.txt]
-head runs.txt
-wc -l runs.txt
+head [file.txt]
+wc -l [file.txt]
 ```
 
 Example
@@ -49,25 +49,35 @@ fasterq-dump -h | head
 
 #### 2.2 Create working directories
 ```bash
-mkdir sra_download fastq
+mkdir [folder]
+```
+
+Example
+```bash
+mkdir sra_download
 ```
 
 ### 3. Download .sra files and convert to FASTQ
 #### 3.1 Download .sra files
 ```bash
-prefetch --option-file runs.txt --output-directory sra_download
-Check downloaded files:
+prefetch --option-file [file.txt] --output-directory [folder]
 ```
 
+Check downloaded files:
 ```bash
+find [folder] -name "*.sra" | head
+```
+Example
+```bash
+prefetch --option-file runs.txt --output-directory sra_download
 find sra_download -name "*.sra" | head
 ```
 #### 3.2 Convert .sra to FASTQ
 ```bash
-fasterq-dump --split-files --threads 8 --outdir fastq $(cat runs.txt)
+fasterq-dump --split-files --threads 8 --outdir fastq $([file.txt])
 ```
 
-Ex:
+Example
 ```bash
 fasterq-dump --split-files --threads 8 --outdir fastq $(cat runs.txt)
 ```
@@ -75,27 +85,37 @@ fasterq-dump --split-files --threads 8 --outdir fastq $(cat runs.txt)
 ## II. Common Issues and Troubleshooting
 ### 1. BioProject returns no Run data
 Symptoms:
-
 runinfo.csv is empty or contains only a header
-
 runs.txt has 0 lines
-
 #### 1.1 Inspect runinfo.csv
-bash
+```bash
+ls -lh [file.tsv/csv]
+head -n 5 [file.tsv/csv]
+tail -n 5 [file.tsv/csv]
+```
 
+Example:
+```bash
 ls -lh runinfo.csv
 head -n 5 runinfo.csv
 tail -n 5 runinfo.csv
+```
+
 If the file contains errors, HTML, or no data → EDirect query failed.
 
 #### 1.2 Verify the Run column position
-bash
+```bash
+head -n 1 [file.tsv/csv]
+```
 
+Example:
+```bash
 head -n 1 runinfo.csv
+```
+
 Automatically extract the correct Run column:
 
-bash
-
+```bash
 awk -F',' '
 NR==1{
   for(i=1;i<=NF;i++) if($i=="Run") col=i
@@ -104,6 +124,7 @@ NR==1{
 }
 NR>1 && $col!="" {print $col}
 ' runinfo.csv > runs.txt
+```
 #### 1.3 Fix Windows CRLF line endings
 bash
 
